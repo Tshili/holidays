@@ -7,12 +7,15 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.concurrent.TimeUnit;
 
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collector;
@@ -64,6 +67,40 @@ public class PriceTrackerController {
 	
 	Service service = new ServiceImpl();
 	
+	
+	@GetMapping(value="/")
+	public String init() throws InterruptedException {
+		List<DestinationDate> destinationDates = new ArrayList<DestinationDate>();
+		destinationDates.add(new DestinationDate("2020-04-10","2020-04-13"));
+		destinationDates.add(new DestinationDate("2020-04-11","2020-04-13"));
+		for (DestinationDate destinationDate : destinationDates) {
+			
+		Runnable runnable = new Runnable() {
+			
+			@Override
+			public void run() {
+				
+				
+					try {
+						PriceTrackerController   priceTrackerController = new PriceTrackerController();
+						priceTrackerController.listOfTripByMail(priceTrackerController.QuotesInbound("FR", "EUR", "NTE", "ISO", "anywhere", destinationDate.getReturnDate(), destinationDate.getDepartureDate(), true, 250, null, null));
+						//priceTrackerController.QuotesInbound("FR", "EUR", "NTE", "ISO", "anywhere", destinationDate.getReturnDate(), destinationDate.getDepartureDate(), true, 250, null, null);
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				
+			}
+		}; 
+		
+		ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
+		service.scheduleAtFixedRate(runnable, 0, 5, TimeUnit.HOURS);
+		
+		TimeUnit.MINUTES.sleep(1);
+		}
+		
+		return "Running....";
+	}
 	
 		
 	
@@ -337,8 +374,6 @@ public class PriceTrackerController {
 
 	
 	public  void  listOfTripByMail(RetrieveCheapestFromquotes newCriteriaJson) throws Exception {
-		
-	
 		
 		List <Quotes> newQuoteWithDepartureAndReturnDates = new ArrayList<>(Arrays.asList());
  		for (Quotes quotes : newCriteriaJson.getQuotes()) {
